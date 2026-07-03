@@ -58,7 +58,7 @@ shellmate/
 ### 2. Install Shellmate
 Clone the repository and install it in editable mode:
 ```bash
-git clone https://github.com/your-username/shellmate.git
+git clone https://github.com/allenjohn006/Shellmate.git
 cd shellmate
 pip install -e .
 ```
