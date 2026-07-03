@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[project]
+name = "shellmate"
+version = "0.1.0"
+description = "AI-powered terminal assistant for Linux and WSL"
+requires-python = ">=3.8"
+dependencies = [
+  "typer",
+  "rich",
+  "textual",
+  "pynput",
+  "pyyaml",
+  "requests",
+  "pyperclip"
+]
+
+[project.scripts]
+shellmate = "shellmate.main:app"
+shellmate-daemon = "shellmate.daemon.hotkey:start"

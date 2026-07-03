@@ -1,0 +1,7 @@
+typer
+rich
+textual
+pynput
+pyyaml
+requests
+pyperclip
