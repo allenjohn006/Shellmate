@@ -17,5 +17,5 @@ dependencies = [
 ]
 
 [project.scripts]
-shellmate = "shellmate.main:app"
+shellmate = "shellmate.main:run"
 shellmate-daemon = "shellmate.daemon.hotkey:start"

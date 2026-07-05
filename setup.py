@@ -16,7 +16,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "shellmate=shellmate.main:app",
+            "shellmate=shellmate.main:run",
             "shellmate-daemon=shellmate.daemon.hotkey:start",
         ],
     },

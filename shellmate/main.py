@@ -35,28 +35,42 @@ def check_setup():
         console.print(Panel("[yellow]Shellmate is not set up yet. Please run `shellmate setup` first.[/yellow]"))
         raise typer.Exit(1)
 
-@app.callback(invoke_without_command=True)
-def main_callback(ctx: typer.Context, query: str = typer.Argument(None, help="Ask Shellmate a question directly.")):
-    if ctx.invoked_subcommand is None:
-        if query:
-            check_setup()
-            console.print("[dim]Thinking...[/dim]")
-            response = query_ai(query, is_agent=False)
-            if response:
-                cmd = response.get("command", "")
-                exp = response.get("explanation", "")
-                alts = response.get("alternatives", [])
-                
-                console.print(Panel(exp, title="[blue]Explanation[/blue]", border_style="blue"))
-                if cmd:
-                    console.print(Panel(f"[bold green]{cmd}[/bold green]", title="[green]Suggested Command[/green]", border_style="green"))
-                
-                if alts:
-                    console.print("[dim]Alternatives:[/dim]")
-                    for alt in alts:
-                        console.print(f"  - {alt}")
-        else:
-            console.print(ctx.get_help())
+@app.callback()
+def main_callback():
+    """Shellmate: AI-powered terminal assistant"""
+    pass
+
+@app.command("ask", hidden=True)
+def ask(query: str = typer.Argument(..., help="Ask Shellmate a question directly.")):
+    """Ask Shellmate a question directly."""
+    check_setup()
+    console.print("[dim]Thinking...[/dim]")
+    response = query_ai(query, is_agent=False)
+    if response:
+        cmd = response.get("command", "")
+        exp = response.get("explanation", "")
+        alts = response.get("alternatives", [])
+        
+        console.print(Panel(exp, title="[blue]Explanation[/blue]", border_style="blue"))
+        if cmd:
+            console.print(Panel(f"[bold green]{cmd}[/bold green]", title="[green]Suggested Command[/green]", border_style="green"))
+        
+        if alts:
+            console.print("[dim]Alternatives:[/dim]")
+            for alt in alts:
+                console.print(f"  - {alt}")
+
+def run():
+    import sys
+    SUBCOMMANDS = {
+        "explain", "agent", "setup", "profile-setup", 
+        "custom", "model", "config", "project", 
+        "__popup", "--help", "-h", "--install-completion", "--show-completion"
+    }
+    if len(sys.argv) > 1 and sys.argv[1] not in SUBCOMMANDS and not sys.argv[1].startswith("-"):
+        sys.argv.insert(1, "ask")
+    app()
+
 
 @app.command()
 def explain(error_text: str = typer.Argument(..., help="The error text to explain.")):
@@ -386,4 +400,4 @@ def __popup():
     run_popup()
 
 if __name__ == "__main__":
-    app()
+    run()
