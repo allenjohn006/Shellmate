@@ -1,0 +1,85 @@
+Screen {
+    background: $surface-darken-1;
+    align: center middle;
+}
+
+#header {
+    dock: top;
+    height: 3;
+    content-align: center middle;
+    background: $primary-background;
+    color: $text;
+    text-style: bold;
+}
+
+#chat-history {
+    height: 1fr;
+    border: solid $accent;
+    background: $surface;
+    padding: 1 2;
+    overflow-y: auto;
+}
+
+.user-message {
+    text-align: right;
+    color: $text;
+    background: $surface-lighten-1;
+    padding: 1 2;
+    margin: 1 0;
+    border-radius: 1;
+}
+
+.ai-message {
+    text-align: left;
+    color: $text-muted;
+    background: $surface;
+    padding: 1 2;
+    margin: 1 0;
+}
+
+.suggestion-card {
+    border: solid $success;
+    background: $surface-lighten-1;
+    padding: 1 2;
+    margin: 1 0;
+}
+
+.suggestion-card:focus {
+    border: double $success-lighten-2;
+    background: $surface-lighten-2;
+}
+
+.card-command {
+    text-style: bold;
+    color: $success;
+    margin-bottom: 1;
+}
+
+.card-explanation {
+    color: $text-muted;
+}
+
+#input-container {
+    dock: bottom;
+    height: 5;
+    layout: horizontal;
+    background: $surface-darken-1;
+    padding: 1;
+}
+
+#query-input {
+    width: 1fr;
+    margin-right: 1;
+}
+
+#ask-button {
+    width: 15;
+}
+
+#footer {
+    dock: bottom;
+    height: 1;
+    content-align: center middle;
+    color: $text-muted;
+    background: $surface-darken-2;
+}
