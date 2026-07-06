@@ -15,6 +15,7 @@ from shellmate.core.customs import (
 )
 from shellmate.core.ai import query_ai
 from shellmate.core.agent import run_agent
+from shellmate.core.executor import run_command
 from shellmate.utils.models import FREE, PAID, get_all_models, get_model_by_id
 
 app = typer.Typer(help="Shellmate: AI-powered terminal assistant", no_args_is_help=True)
@@ -259,6 +260,50 @@ def custom_remove(name: str = typer.Argument(..., help="Name of the custom comma
             console.print(f"[green]✓ Removed '{name}'[/green]")
         else:
             console.print(f"[red]Command '{name}' not found.[/red]")
+
+@custom_app.command("run", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def custom_run(
+    ctx: typer.Context,
+    name: str = typer.Argument(..., help="Name of the custom command to run")
+):
+    """Run a custom command. Pass variables as --name value or name=value."""
+    check_setup()
+    c = get_custom(name)
+    if not c:
+        console.print(f"[red]Custom command '{name}' not found.[/red]")
+        return
+        
+    var_map = {}
+    i = 0
+    while i < len(ctx.args):
+        arg = ctx.args[i]
+        if arg.startswith("--"):
+            key = arg[2:]
+            if i + 1 < len(ctx.args) and not ctx.args[i+1].startswith("-"):
+                var_map[key] = ctx.args[i+1]
+                i += 2
+            else:
+                var_map[key] = "true"
+                i += 1
+        elif "=" in arg:
+            k, v = arg.split("=", 1)
+            var_map[k.strip()] = v.strip()
+            i += 1
+        else:
+            i += 1
+            
+    cmd_template = c.get("command", "")
+    required_vars = c.get("variables", [])
+    
+    for var_name in required_vars:
+        if var_name not in var_map:
+            val = Prompt.ask(f"Enter value for variable '{var_name}'")
+            var_map[var_name] = val
+        cmd_template = cmd_template.replace(f"{{{var_name}}}", var_map[var_name])
+        
+    console.print(f"[dim]Running custom command: {cmd_template}[/dim]")
+    run_command(cmd_template)
+
 
 # --- MODEL APP ---
 

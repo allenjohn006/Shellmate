@@ -104,7 +104,7 @@ sm agent "find all .py files in this folder, search for lines containing 'import
 - `--dry-run`: View the plans and steps the AI would execute without invoking any of the commands.
 
 ### 4. Custom Templates
-Manage reusable command templates:
+Manage and run reusable command templates:
 - **Add**: Interactive creation.
   ```bash
   sm custom add
@@ -113,6 +113,14 @@ Manage reusable command templates:
 - **List**: Print a clean, formatted table.
   ```bash
   sm custom list
+  ```
+- **Run**: Directly run a custom command. You can pass variables as key=value pairs, double-dash arguments, or omit them to be prompted interactively.
+  ```bash
+  sm custom run <name> [variables...]
+  
+  # Examples:
+  sm custom run commit --message "fixed index lock"
+  sm custom run commit message="resolved lock issue"
   ```
 - **Edit**: Edit an existing custom command template.
   ```bash
