@@ -3,7 +3,7 @@ from textual.app import App, ComposeResult
 from textual.containers import VerticalScroll, Horizontal, Container
 from textual.widgets import Header, Input, Button, Static, Label
 from textual.binding import Binding
-from textual.worker import work
+from textual._work_decorator import work
 from shellmate.core.ai import query_ai
 from shellmate.core.context import get_shell_history
 
