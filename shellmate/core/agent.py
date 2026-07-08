@@ -9,93 +9,156 @@ from .config import load_config
 console = Console()
 
 def run_agent(goal: str):
-    console.print(Panel(f"Agent Goal: {goal}", title="[bold blue]Shellmate Agent Mode[/bold blue]", border_style="blue"))
-    
-    chat_history = []
+    console.print(Panel(
+        f"[bold]Goal:[/bold] {goal}",
+        title="[bold blue]Shellmate Agent Mode[/bold blue]",
+        border_style="blue"
+    ))
+
     config = load_config()
     dry_run = config.get("dry_run", False)
-    
-    # Step 1: Initial Planning
-    console.print("[cyan]Thinking... Planning steps...[/cyan]")
-    prompt = f"Goal: {goal}\nPlan the steps required to achieve this goal."
-    
-    while True:
+
+    if dry_run:
+        console.print("[yellow]DRY RUN mode — commands will be shown but not executed.[/yellow]\n")
+
+    # Full conversation history fed back to AI each round
+    chat_history = []
+    # The first prompt asks AI to plan steps for the goal
+    prompt = (
+        f"Goal: {goal}\n"
+        f"Plan the steps required to achieve this goal. "
+        f"Return a JSON object with a 'steps' array. "
+        f"If the goal is already complete, return an empty steps array."
+    )
+
+    max_rounds = 10  # safety cap to avoid infinite loops
+    round_num = 0
+
+    while round_num < max_rounds:
+        round_num += 1
+        console.print(f"\n[cyan]Planning... (round {round_num})[/cyan]")
+
         response_data = query_ai(prompt, is_agent=True, chat_history=chat_history)
+
         if not response_data:
-            console.print("[red]Agent execution halted due to API error.[/red]")
+            console.print("[red]Agent halted — API error or could not parse response.[/red]")
             break
-            
+
+        # Record this exchange in history
         chat_history.append({"role": "user", "content": prompt})
         chat_history.append({"role": "assistant", "content": json.dumps(response_data)})
-        
+
         steps = response_data.get("steps", [])
+
         if not steps:
-            console.print("[green]Goal completed or no further steps needed.[/green]")
+            console.print(Panel(
+                "[green]✅ Goal completed! No further steps needed.[/green]",
+                border_style="green"
+            ))
             break
-            
-        # Execute steps
-        all_completed = True
-        for i, step in enumerate(steps, 1):
-            command = step.get("command")
-            explanation = step.get("explanation")
-            
-            console.print(f"\n[bold magenta]Step {i}:[/bold magenta] {explanation}")
-            console.print(Panel(command, border_style="green"))
-            
-            if dry_run:
-                run_command(command, dry_run=True)
+
+        console.print(f"[dim]AI planned {len(steps)} step(s) for this round.[/dim]")
+
+        # Execute each step one by one
+        step_index = 0
+        while step_index < len(steps):
+            step = steps[step_index]
+            command = step.get("command", "").strip()
+            explanation = step.get("explanation", "")
+            is_destructive = step.get("is_destructive", False)
+
+            if not command:
+                step_index += 1
                 continue
-                
+
+            # Show the step
+            console.print(f"\n[bold magenta]Step {step_index + 1} of {len(steps)}:[/bold magenta] {explanation}")
+
+            # Classify safety even if not flagged by AI
             safety = classify_command(command)
-            if safety == "destructive":
-                console.print("[red]⚠️  This command is flagged as DESTRUCTIVE.[/red]")
-                
-            # Prompt user
-            choice = Prompt.ask(
-                "[bold cyan]Action[/bold cyan]", 
-                choices=["y", "n", "s", "a"], 
-                default="y",
-                show_choices=False,
-                show_default=False
-            )
-            # Make a custom prompt for choices:
-            console.print("[dim](y)es, (n)o, (s)kip, (a)bort[/dim]")
-            
-            choice = Prompt.ask("Choose", choices=["y", "n", "s", "a"], default="y")
-            
+            if safety == "destructive" or is_destructive:
+                console.print(Panel(
+                    f"[red]⚠️  DESTRUCTIVE COMMAND DETECTED[/red]\n{command}",
+                    border_style="red"
+                ))
+            else:
+                console.print(Panel(f"[bold green]{command}[/bold green]", border_style="green"))
+
+            if dry_run:
+                console.print(f"[yellow][DRY RUN] Would execute: {command}[/yellow]")
+                step_index += 1
+                continue
+
+            # Single clean prompt for user choice
+            console.print("[dim]  (y) run  (n) reject  (s) skip  (a) abort[/dim]")
+            choice = Prompt.ask("  Action", choices=["y", "n", "s", "a"], default="y")
+
             if choice == "a":
                 console.print("[yellow]Agent aborted by user.[/yellow]")
                 return
+
             elif choice == "s":
-                console.print("[yellow]Skipping step.[/yellow]")
-                prompt = f"User skipped the previous step. Continue with next steps to achieve the goal: {goal}"
-                all_completed = False
-                break
+                console.print("[yellow]⏭  Step skipped.[/yellow]")
+                step_index += 1
+                continue
+
             elif choice == "n":
-                console.print("[yellow]Step rejected.[/yellow]")
-                feedback = Prompt.ask("Why? (This feedback will be sent to the AI)")
-                prompt = f"User rejected the step '{command}'. Reason: {feedback}. Please adjust the plan."
-                all_completed = False
-                break
+                feedback = Prompt.ask("  Why? (feedback sent to AI)")
+                prompt = (
+                    f"User rejected the command '{command}'. Reason: {feedback}. "
+                    f"Please revise the plan and continue working toward the original goal: {goal}"
+                )
+                break  # re-plan with feedback
+
             elif choice == "y":
-                # Execute
-                console.print("[dim]Executing...[/dim]")
+                console.print("[dim]  Executing...[/dim]")
                 result = run_command(command, dry_run=False)
-                
+
                 if result["returncode"] != 0:
-                    console.print(Panel(result["stderr"], title="[red]Error Output[/red]", border_style="red"))
-                    prompt = f"Command '{command}' failed with exit code {result['returncode']}.\nError: {result['stderr']}\nPlease adjust the plan to fix this."
-                    all_completed = False
-                    break
+                    # Command failed — show error and ask AI to fix
+                    error_output = result["stderr"] or result["stdout"] or "Unknown error"
+                    console.print(Panel(
+                        error_output[:600],
+                        title="[red]Command Failed[/red]",
+                        border_style="red"
+                    ))
+                    prompt = (
+                        f"The command '{command}' failed with exit code {result['returncode']}.\n"
+                        f"Error output:\n{error_output[:600]}\n"
+                        f"Please revise the plan to fix this and continue toward the goal: {goal}"
+                    )
+                    break  # re-plan with error context
+
                 else:
-                    if result["stdout"]:
-                        console.print(Panel(result["stdout"][:500] + ("..." if len(result["stdout"]) > 500 else ""), title="[green]Output[/green]", border_style="green"))
-                    prompt = f"Command '{command}' succeeded.\nOutput: {result['stdout'][:500]}\nPlan the next steps if the goal is not yet fully achieved, or return an empty steps array."
-                    # Continue to next step in the loop if we want, or we can feed back immediately.
-                    # Given the prompt instructs step 7 & 8: "feed output back to AI as context, AI decides next step"
-                    # We should break and let the AI re-plan based on output.
-                    all_completed = False
-                    break
-                    
-        if all_completed and dry_run:
-            break
+                    # Command succeeded — show output and move to next step
+                    stdout = result["stdout"].strip()
+                    if stdout:
+                        console.print(Panel(
+                            stdout[:500] + ("..." if len(stdout) > 500 else ""),
+                            title="[green]Output[/green]",
+                            border_style="green"
+                        ))
+                    console.print("[green]✅ Step completed.[/green]")
+                    step_index += 1
+
+                    # If this was the last step, ask AI if goal is done
+                    if step_index >= len(steps):
+                        prompt = (
+                            f"All planned steps completed successfully.\n"
+                            f"Last command output: {stdout[:300]}\n"
+                            f"Is the original goal fully achieved: '{goal}'? "
+                            f"If yes, return empty steps array. "
+                            f"If more steps are needed, return them."
+                        )
+                        break  # go back to AI for next round check
+        else:
+            # All steps in this round executed without breaking
+            # Ask AI if there's anything left to do
+            prompt = (
+                f"All planned steps for this round completed successfully. "
+                f"Is the original goal fully achieved: '{goal}'? "
+                f"If yes, return empty steps array. If more steps are needed, return them."
+            )
+
+    else:
+        console.print(f"[yellow]Agent reached maximum rounds ({max_rounds}). Stopping.[/yellow]")
