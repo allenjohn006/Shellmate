@@ -11,11 +11,12 @@ def on_activate():
     t.start()
     
 def start():
-    print("Shellmate Hotkey Daemon Started. Listening for <ctrl>+<space>...")
+    print("Shellmate Hotkey Daemon Started. Listening for <ctrl>+<backslash>...")
     
-    # Define the hotkey
+    # Define the hotkey — changed from <ctrl>+<space> to <ctrl>+<backslash>
+    # to avoid conflict with VS Code's IntelliSense shortcut.
     hotkey = keyboard.HotKey(
-        keyboard.HotKey.parse('<ctrl>+<space>'),
+        keyboard.HotKey.parse('<ctrl>+<backslash>'),
         on_activate
     )
 

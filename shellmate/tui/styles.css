@@ -1,85 +1,138 @@
+/* ============================================================
+   Shellmate TUI — Dark terminal aesthetic
+   Palette:
+     bg-deep     #0d1117   (GitHub dark base)
+     bg-panel    #161b22   (panel / bubble surface)
+     border      #30363d   (subtle border)
+     blue        #58a6ff   (accent / highlight)
+     blue-dark   #1f6feb   (button / card border)
+     green       #7ee787   (command text)
+     grey        #8b949e   (explanation / muted)
+     white       #e6edf3   (primary text)
+   ============================================================ */
+
 Screen {
-    background: $surface-darken-1;
-    align: center middle;
+    background: #0d1117;
+    color: #e6edf3;
 }
 
+/* ── Header bar ──────────────────────────────────────────── */
 #header {
     dock: top;
     height: 3;
-    content-align: center middle;
-    background: $primary-background;
-    color: $text;
+    content-align: left middle;
+    padding: 0 2;
+    background: #161b22;
+    color: #58a6ff;
     text-style: bold;
+    border-bottom: solid #30363d;
 }
 
+/* ── Scrollable chat area ────────────────────────────────── */
 #chat-history {
     height: 1fr;
-    border: solid $accent;
-    background: $surface;
+    background: #0d1117;
     padding: 1 2;
     overflow-y: auto;
+    border: none;
 }
 
+/* ── User message bubble ─────────────────────────────────── */
 .user-message {
-    text-align: right;
-    color: $text;
-    background: $surface-lighten-1;
-    padding: 1 2;
+    color: #58a6ff;
+    background: #161b22;
+    padding: 0 1;
     margin: 1 0;
-    border-radius: 1;
+    border-left: solid #58a6ff;
 }
 
+/* ── AI plain text message ───────────────────────────────── */
 .ai-message {
-    text-align: left;
-    color: $text-muted;
-    background: $surface;
-    padding: 1 2;
+    color: #8b949e;
+    background: transparent;
     margin: 1 0;
+    padding: 0 1;
 }
 
+/* ── Suggestion card (primary) ───────────────────────────── */
 .suggestion-card {
-    border: solid $success;
-    background: $surface-lighten-1;
+    border: solid #1f6feb;
+    background: #161b22;
     padding: 1 2;
     margin: 1 0;
 }
 
 .suggestion-card:focus {
-    border: double $success-lighten-2;
-    background: $surface-lighten-2;
+    border: solid #58a6ff;
+    background: #1c2333;
 }
 
+/* ── Alternative card (slightly subdued) ─────────────────── */
+.alt-card {
+    border: solid #30363d;
+    background: #0d1117;
+}
+
+.alt-card:focus {
+    border: solid #58a6ff;
+    background: #161b22;
+}
+
+/* ── Card inner labels ───────────────────────────────────── */
 .card-command {
     text-style: bold;
-    color: $success;
-    margin-bottom: 1;
+    color: #7ee787;
+    margin-bottom: 0;
 }
 
 .card-explanation {
-    color: $text-muted;
+    color: #8b949e;
+    margin-top: 0;
 }
 
+.card-hint {
+    color: #30363d;
+    margin-top: 1;
+}
+
+/* ── Bottom input container ──────────────────────────────── */
 #input-container {
     dock: bottom;
-    height: 5;
+    height: 3;
     layout: horizontal;
-    background: $surface-darken-1;
-    padding: 1;
+    background: #161b22;
+    border-top: solid #30363d;
+    padding: 0 1;
 }
 
 #query-input {
     width: 1fr;
-    margin-right: 1;
+    background: #0d1117;
+    border: solid #30363d;
+    color: #e6edf3;
+}
+
+#query-input:focus {
+    border: solid #58a6ff;
 }
 
 #ask-button {
-    width: 15;
+    width: 10;
+    background: #1f6feb;
+    color: #ffffff;
+    border: none;
+    margin-left: 1;
 }
 
+#ask-button:hover {
+    background: #388bfd;
+}
+
+/* ── Footer shortcuts bar ────────────────────────────────── */
 #footer {
     dock: bottom;
     height: 1;
     content-align: center middle;
-    color: $text-muted;
-    background: $surface-darken-2;
+    color: #30363d;
+    background: #0d1117;
 }
