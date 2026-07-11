@@ -44,7 +44,7 @@ class ShellmateApp(App):
 
     def compose(self) -> ComposeResult:
         # No built-in Header — we render our own bar with id="header"
-        yield Label("⚡ SHELLMATE                   Ctrl+\\ to toggle  |  Esc to close", id="header")
+        yield Label(" SHELLMATE                   Ctrl+\\ to toggle  |  Esc to close", id="header")
 
         with VerticalScroll(id="chat-history") as self.chat_area:
             pass
@@ -61,10 +61,10 @@ class ShellmateApp(App):
         # Show recent shell history as welcome context
         history = get_shell_history(3)
         if history:
-            welcome_text = "⚡ Recent commands:\n" + "\n".join(f"  $ {cmd}" for cmd in history)
+            welcome_text = " Recent commands:\n" + "\n".join(f"  $ {cmd}" for cmd in history)
             self.chat_area.mount(Static(welcome_text, classes="ai-message"))
         else:
-            self.chat_area.mount(Static("⚡ Hello! How can I help you in the terminal today?", classes="ai-message"))
+            self.chat_area.mount(Static(" Hello! How can I help you in the terminal today?", classes="ai-message"))
 
     # ── Event handlers ──────────────────────────────────────────────────────────
 
@@ -104,7 +104,7 @@ class ShellmateApp(App):
         self.chat_history_list.append({"role": "user", "content": query})
 
         # Show a non-blocking loading indicator
-        self._loading_widget = Static("⚡ Thinking…", classes="ai-message")
+        self._loading_widget = Static(" Thinking…", classes="ai-message")
         await self.chat_area.mount(self._loading_widget)
         self.chat_area.scroll_end(animate=False)
 
@@ -132,7 +132,7 @@ class ShellmateApp(App):
             self._loading_widget = None
 
         if not response:
-            self.chat_area.mount(Static("⚡ Failed to get a response. Check your API key or connection.", classes="ai-message"))
+            self.chat_area.mount(Static(" Failed to get a response. Check your API key or connection.", classes="ai-message"))
             self.chat_area.scroll_end(animate=False)
             return
 
@@ -149,7 +149,7 @@ class ShellmateApp(App):
             card.focus()
         else:
             # Plain text explanation (no command returned)
-            self.chat_area.mount(Static(f"⚡ {explanation}", classes="ai-message"))
+            self.chat_area.mount(Static(f" {explanation}", classes="ai-message"))
 
         # Render each alternative as a smaller card
         for alt_cmd in alternatives:
