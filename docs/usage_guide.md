@@ -104,3 +104,9 @@ shellmate-daemon
 4. Press `Enter` to copy the command to your clipboard and close the popup, or press `Ctrl+C` to copy without closing.
 
 *Note for WSL users:* If you do not have an X server (like WSLg) running, the global hotkey cannot listen in the background. In this case, `shellmate-daemon` will run in terminal mode — simply press `Enter` in that terminal window to open the TUI.
+
+**To run the TUI popup directly for testing:**
+```bash
+python3 -c "from shellmate.tui.popup import run_popup; run_popup()"
+```
+
