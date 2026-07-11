@@ -1,4 +1,6 @@
 import pyperclip
+from pathlib import Path
+from typing import Optional
 from textual.app import App, ComposeResult
 from textual.containers import VerticalScroll, Horizontal, Container
 from textual.widgets import Header, Input, Button, Static, Label
@@ -6,6 +8,9 @@ from textual.binding import Binding
 from textual._work_decorator import work
 from shellmate.core.ai import query_ai
 from shellmate.core.context import get_shell_history
+
+# Absolute path so styles.css loads correctly from any working directory
+_CSS_PATH = str(Path(__file__).parent / "styles.css")
 
 
 class SuggestionCard(Container):
@@ -26,7 +31,7 @@ class SuggestionCard(Container):
 
 
 class ShellmateApp(App):
-    CSS_PATH = "styles.css"
+    CSS_PATH = _CSS_PATH
     BINDINGS = [
         Binding("escape", "quit", "Close"),
     ]
@@ -35,7 +40,7 @@ class ShellmateApp(App):
         super().__init__(**kwargs)
         self.chat_history_list = []
         # Reference to the current loading indicator so we can remove it
-        self._loading_widget: Static | None = None
+        self._loading_widget: Optional[Static] = None
 
     def compose(self) -> ComposeResult:
         # No built-in Header — we render our own bar with id="header"
